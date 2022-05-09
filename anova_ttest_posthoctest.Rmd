@@ -1,0 +1,202 @@
+## Lesson 01 - ANOVA from UPenn STAT502
+
+```{r}
+#the data - greenhouse data
+
+data <- read.table(file = "lesson1_data.txt", header = T)
+head(data)
+```
+### ONE-WAY ANOVA
+
+One-way ANOVA gets its name from the fact that there's only one dependent variable to be analysed and one or more independent variables.
+
+Let's performe the ANOVA on the cholesterol dataset. There are two variables treatments at 5 diferent levels and response variables.
+
+* Independent variables: groups of drug treatment
+* Dependent variable: means of two or more groups ANOVA
+
+#### About the dataset
+
+A clinical study was conducted to assess the effect of three formulations of the same drug on reducing cholesterol. The formulations were 20mg at once (1time), 10mg twice a day (2times), and 5mg four times a day (4times). In addition, two competing drugs were used as control group (drugD and drugE). The purpose of the study was to find which of the formulations, if any, is efficacious and how these formulations compare with the existing drugs
+
+```{r echo=FALSE, warning=FALSE}
+library(multcomp)
+library(tidyverse)
+library(gplots)
+str(cholesterol)
+```
+
+```{r}
+head(cholesterol)
+```
+
+#Analysis of Variance Model
+
+```{r}
+attach(cholesterol)
+aov_model <- aov(response ~ trt)
+summary(aov_model)
+```
+Keep in mind that R does a F-test with a 95%CI, it means that if our p-value is less than 5%, than we can reject the null in favor of the alternative that there's difference between the mean of the different treatment groups.
+
+```{r}
+plotmeans(response ~ trt, xlab = "Treatment", ylab = "Response", 
+          main = "Mean Plot\nwith 95% CI")
+```
+
+The ONE-WAY ANOVA test tells us **if the difference between the mean groups is statistically significant**.
+
+In this case, we can conclude that there's difference between the treatment means.
+
+### Tukey's Test
+
+The Tukey's test is a ***post hoc test*** (multiple comparison test) done when we want to do pair-wise comparison between different treatment groups. It tells us **which exactly groups are different from each other**
+
+```{r}
+#Tukey test for the cholesterol data
+TukeyHSD(aov_model, conf.level = 0.95)
+```
+We can vizualize the 95% difference intervals form the Tukey-test
+
+```{r}
+plot(TukeyHSD(aov_model, conf.level = 0.95), las = 2)
+par(mar=c(5,8,8,10))
+par(c("mar", "mei"))
+```
+If the interval contains zero, than we know that the difference among the treatment groups are not significant. Likewise, if the p-value is greater than $\alpha$ than we know that there's no significant difference among the treatment groups. 
+
+## Tukey- Test using the `multcompView` library
+
+```{r echo=FALSE}
+library(multcompView)
+```
+```{r}
+#Create data
+set.seed(1)
+treatment <- rep(c("A", "B", "C", "D", "E"), each=20) 
+value=c( sample(2:5, 20 , replace=T) , sample(6:10, 20 , replace=T), sample(1:7, 20 , replace=T), sample(3:10, 20 , replace=T) , sample(10:20, 20 , replace=T) )
+data=data.frame(treatment,value)
+head(data)
+
+#creating the model
+model = lm(data$value ~ data$treatment)
+anova=aov(model)
+
+summary(anova)
+
+#tukey test 
+
+tukey <- TukeyHSD(anova, 'data$treatment', conf.level = 0.95)
+
+#tukey test representation
+plot(tukey, las = 1, col = 'brown')
+```
+
+The family-wise interval showed us that there's no difference between the groups:
+
+* C-A
+* D-B
+
+Because the intervals contain the number 0. That means that there's a 95% chance that the true population mean lies between that interval, and given that the null is that the means are equal (represented by a $q_{\alpha} = 0$), if the CI contains the number 0, it means that it might happen that the means between the two treatments are equal. Thus, we cannot reject the Null on those cases.
+
+We can represent the same information using a Box-plot instead.
+[Tukey-Test R Graph Gallery](https://r-graph-gallery.com/84-tukey-test.html#:~:text=A%20Tukey%20test%20compares%20all%20possible%20pair%20of,it%20is%20used%20in%20conjunction%20with%20an%20ANOVA.)
+
+```{r}
+#plotting the family-wise plot with the cholesterol data
+par(mar=c(5,8,4,2) + 0.1) #margins are bottom, left, top and right
+
+model_2 <- lm(response ~ trt)
+anova_col <- aov(model_2)
+
+tukey_col <- TukeyHSD(anova_col, 'trt', conf.level = 0.95)
+plot(tukey_col, las = 1, col = 'brown')
+```
+In post-hoc tests we use a simultaneous confidence level. The simultaneous confidence level applies to the entire family of means comparisons. We can be 95% confident that all intervals contain the actual population differences between the groups.
+
+```{r}
+tukey_col
+```
+## T-tests in R
+
+So, as we've seen, keep in mind that t-tests are basically set up to test our hypothesys of if the statistic that we get from a sample is statistically significant with the true value of the population parameter. That parameter is usually a mean. And the value that we get from a sample is our estimation.
+
+### Types of t-test
+
+* One Sample t-test
+
+```{r}
+#let's generate a random data 
+treeVolume <- c(rnorm(75, mean = 36500, sd = 2000))
+
+#let's perform a t-test to assess out hypothesis that the true mean is different than 39000.
+
+# So, our H_0 is that the mean of our true population of shipment lumber volume is equal to 39000
+
+t.test(treeVolume, mu=39000)
+```
+
+
+* Paired-sample t-test
+
+It has the following syntax `t.test(y1,y2, paired=TRUE)`
+
+For instance, let’s say that we work at a large health clinic and we’re testing a new drug, Procardia, that’s meant to reduce hypertension. We find 1000 individuals with a high systolic blood pressure ($\overline{x} = 145$, $SD = 9$), we give them Procardia for a month, and then measure their blood pressure again. We find that the mean systolic blood pressure has decreased to 138mmHg with a standard deviation 8mmHg.
+
+```{r}
+Pretreat <- c(rnorm(1000, mean = 145, sd = 9))
+Postreat <- c(rnorm(1000, mean = 138, sd = 8))
+
+t.test(Pretreat, Postreat, paired = TRUE)
+```
+* Independent Samples
+
+If, we do `t.test(y1, y2, paired = FALSE)`, R assumes that the variance of the two samples `y1` and `y2` are not equal.
+
+Thus, it leads to a Welch's test. By default, R assumes that the variance of the samples are not equal.
+
+To toggle this, use `var.equal = FALSE`
+
+#### Examples:
+
+In the three examples shown here we’ll test the hypothesis that Clevelanders and New Yorkers spend different amounts monthly eating out.
+
+The first example assumes that we have two numeric vectors: one with Clevelanders' spending and one with New Yorkers' spending. The second example uses a binary grouping variable with a single column of spending data. (That is, there is only one column of spending data; however, for each dollar amount, the next column specifies whether it is for a New Yorker or a Clevelander.) Finally, the third example assumes that the variances of the two samples are unequal and uses Welch's test.
+
+
+  * Example 01: 
+  
+  Independent samples where y1 and y2 are numeric
+  
+```{r}
+ClevelandSpending <- rnorm(50, mean = 250, sd = 75)
+NYSpending <- rnorm(50, mean = 300, sd = 80)
+
+t.test(ClevelandSpending, NYSpending, var.equal = TRUE)
+```
+  
+  * Example 02: `y1` is numeric and `y2` is binary
+  
+```{r}
+spending <- c(ClevelandSpending, NYSpending)
+city <- c(rep("Cleveland", 50), rep("New York", 50))
+
+t.test(spending ~ city, var.equal = TRUE)
+```
+
+  * Example 03: Welch's test (variances are unequal)
+  
+  Before doing a `t.test` we can performe a test to verify if the variances are equal or    not.
+  
+  With `var.test(df1, df2)` we can analyse it.
+  
+```{r}
+var.test(ClevelandSpending, NYSpending)
+```
+In this case, our data soes not have different variances. So, we would perform a normal t.test instead of Welch's. But, for the sake of pracctice let's perform the Welch's test.
+
+```{r}
+t.test(ClevelandSpending, NYSpending, var.equal = FALSE)
+```
+
+

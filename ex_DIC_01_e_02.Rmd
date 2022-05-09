@@ -1,0 +1,192 @@
+---
+title: "DIC_01_02"
+author: "Heitor"
+date: '2022-05-09'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+#DIC - Análise de Dados
+
+### Etapas para a estruturação de um DIC
+
+* Entre com os dados (tratamento deverá ser definido como fator)
+* Análise Exploratória dos Dados
+* Ajuste o modelo
+* Faça a análise de resíduos
+    * Verifique as pressuposições
+    * Interpreta a ANOVA
+* Faça o teste de comparação de médias
+* Conclua
+
+## Exercício 01
+
+Four chemists are asked to determine the percentage of methyl alcohol in a certain chemical compound.
+Each chemist makes thre determinationsm and the results are the following:
+
+```{r}
+#Quimicos, ex01
+
+y <-c(84.99, 84.04, 84.38,
+85.15, 85.13, 84.88,
+84.72, 84.48, 85.16,
+84.20, 84.10, 84.55)
+
+trat <- c(rep(1,3), rep(2,3), rep(3,3), rep(4,3))
+trat <- as.factor(trat) #as.factor converts a numeric column to a factor
+
+df1 <- data.frame(trat, y)
+df1
+```
+
+*Factors in R*: factors are a data structure that allows only categorical data.
+*Categorical data in R*: ***characters, numeric, integer or logical ***
+
+Each factor has a level attribute that holds all possible values that the factor can take
+
+Be aware that the `data.frame` function reads an array from top-bottom, left to right.
+
+```{r}
+#Exploratory Analysis
+
+#calculating the length of each factor in the dataset
+
+n <- tapply(df1$y, df1$trat, length)
+
+media.trat <- round(tapply(df1$y, df1$trat, mean),2)
+var.trat <- round(tapply(df1$y, df1$trat, var),2)
+
+#Creating a summary of the data
+
+data.frame(n=n, media.trat, var.trat)
+
+total_media <- mean(df1$y)
+```
+`t.apply (X (object, matrix, df), Index (factor), FUN (Function to be applied to the factors)` applies a function to a list of factors
+
+#### Graph Analysis
+
+`split()` allows to split data into groups based on factor levels
+
+```{r}
+#converting the list into a dataframe
+df1 <- data.frame(df1)
+
+#creating a boxplot for each treatment
+splitted_df1 <- split(df1$y, df1$trat) #splits the data into four groups
+
+ggplot(df1, aes(x = df1$trat, y = df1$y) + geom_boxplot()
+
+```
+
+Nao deu certo usando o ggplot2
+
+```{r}
+df1
+boxplot(split(df1$y, df1$trat))
+```
+##### Analise de residuos
+
+```{r}
+mod <- lm(y ~ trat, data = df1)
+res <- rstudent(mod)
+
+#plotando os residuos
+
+#criando um subplot 1,2
+par(mfrow= c(1,2), pty = "s")
+plot(fitted(mod), residuals(mod), pch=19, col="blue")
+abline(h=0, col = "red")
+
+#plottando o qnorm
+qnorm(res)
+qqline(res)
+```
+
+*Perguntas a serem respondidas:*
+* funcao `lm(y ~ x , df = df)`
+* fyuncao `rstudent(model)`
+* funcao `qqnorm`
+* funcao `qqline`
+
+
+*Mais perguntas :)*
+
+* Qual a funcao do teste de Bartlett?
+* Qual a funcao do teste de Shapiro-Wilk?
+* Qual o porque da funcao `hnp()`?
+
+```{r}
+#carregando pacote hnp
+
+library(hnp)
+hnp(mod, half = F)
+```
+
+##### Testes de Bartlett e shapiro.Wilk
+
+```{r}
+bartlett.test(y ~ trat, data = df1)
+```
+
+```{r}
+shapiro.test(rstudent(mod))
+```
+```{r}
+anova(mod)
+```
+O ANOVA nos indica que nao existe diferenca entre as medias dos tratamentos
+
+## Exercicio 02
+
+Four different designs for a digital computer circuit are being studied to compare the aount of noise present. The following data habe been obtained
+
+```{r}
+y <- c(19,20,19,30,8,80,61,73,56,80,47,26,25,35,50,95,46,83,78,97)
+x <- c(rep(1,5), rep(2,5), rep(3,5), rep(4,5))
+
+trat <- as.factor(x)
+
+df02 <- data.frame(trat, y)
+
+
+```
+
+Executar exatamente o mesmo procedimento que o dos quimicos, agora para os diferentes circuitos.
+
+Conforme apresentado pela professora, os passos para a análise seriam o seguintes:
+
+1. Boxplot dos dados por tratamento
+'boxplot(split(df$y, df$trat))'
+
+2. Verficar a variancia para cada tratamento
+Use a funcao 'tapply()'
+
+3. Adeque um modelo linear aos dados com a funcao 'lm()'
+
+4. Realize o estudo dos residuos, usando a funcao 'rstudent(model)'
+
+5. Plote o grafico dos residuos e o grafico normal - qq
+
+6. Faca o half-normal-plot with simulated envelope 'hnp(model)'
+   E o normal-plot with simulated envelope 'hnp(model , half = F)'
+   
+7. Faça os testes de 'bartlett.test()' e 'shapiro.test(rstudent(model))'
+
+8. Caso a hipotese de normalidade seja rejeitada, verifique a existencia de outliers e remova-o caso exista
+
+9. Realize os testes de Bartlett e Shapiro novamente, junto dos boxplots, hnp e plots de residuos.
+
+10. Caso as presupossicoes do modelo sejam atendidas, realize a ANOVA.
+
+11. Uma vez evidenciado ao menos uma diferenca entre as medias, realize o teste de Tukey.
+
+12. Faca o plot do family-wise com 95% CI
+
+13. Sua conclusao sera dicotomica: existe ou nao existe diferença entre as medias, se sim, quais sao as diferencas?

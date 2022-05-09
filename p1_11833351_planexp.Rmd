@@ -1,0 +1,285 @@
+---
+title: "P1"
+author: "Heitor"
+date: '2022-05-02'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#loading packages
+library(hnp)
+library(lattice)
+library(multcomp)
+library(tidyverse)
+library(gplots)
+
+```
+
+Questão 01
+
+```{r}
+df01 <- c(
+76.2, 80.6, 67.6, 79.4, 83.4, 87.2,
+75.0, 79.4, 68.6, 74.0, 83.8, 88.2,
+80.4, 69.8, 76.0, 64.8, 79.0, 66.0,
+80.6, 74.0, 72.6, 63.2, 76.8, 66.4,
+82.2, 71.6, 72.6, 64.4, 78.4, 66.6,
+84.6, 69.4, 73.4, 64.4, 77.2, 73.2,
+69.6,73.0,  47.4 ,62.6, 74.0, 77.4,
+62.6, 89.2, 52.2, 79.4, 73.4, 95.4,
+67.4, 79.2, 52.2, 72.0, 75.4, 92.0,
+93.0, 81.4, 82.0, 78.4, 91.4, 92.2
+)
+```
+```{r}
+A <- c(
+76.2, 80.6,
+75.0, 79.4,
+80.4, 69.8,
+80.6, 74.0,
+82.2, 71.6,
+84.6, 69.4,
+69.6, 73.0,
+62.6, 89.2,
+67.4, 79.2,
+93.0, 81.4)
+
+B <- c(67.6, 79.4,
+68.6, 74.0,
+76.0, 64.8,
+72.6, 63.2,
+72.6, 64.4,
+73.4, 64.4,
+47.4 ,62.6,
+52.2, 79.4,
+52.2, 72.0,
+82.0, 78.4)
+
+C <- c(
+83.4, 87.2,
+83.8, 88.2,
+79.0, 66.0,
+76.8, 66.4,
+78.4, 66.6,
+77.2, 73.2,
+74.0, 77.4,
+73.4, 95.4,
+75.4, 92.0,
+91.4, 92.2
+)
+
+#criando o dataframe com os dados
+
+
+a <- c(replicate(20,"A"))
+b <- c(replicate(20,"B"))
+c <- c(replicate(20,"C"))
+
+df01 <- data.frame("trat" = c(a,b,c),
+                   "altura" = c(A,B,C))
+
+
+```
+a) Faça um possível croqui de instalação para um novo experimento com o mesmo número de tratamentos
+(variedades) e com cinco repetições; (0, 5 pontos)
+
+
+b) Calcule o número de repetições, a média, a variância e o desvio padrão das alturas para cada tratamento;
+(0, 25 × 4 pontos)
+
+```{r}
+#numero repeticoes
+n_a <- length(A)
+n_b <- length(B)
+n_c <- length(C)
+
+#media dos tratamentos
+meda <- mean(A)
+medb <- mean(B)
+medc <- mean(C)
+
+print(meda)
+print(medb)
+print(medc)
+
+#variancia dos tratamentos
+print(var(A))
+print(var(B))
+print(var(C))
+
+#desvio padrao dos tratamentos
+print(sd(A))
+print(sd(B))
+print(sd(C))
+```
+
+c) Realize uma análise gráfica
+
+```{r}
+plotmeans(df01$altura ~ df01$trat, xlab = "Treatment", ylab = "Height(cm)", 
+          main = "Mean Plot\nwith 95% CI")
+```
+
+
+d) Verifique se as pressuposições básicas do modelo foram atendidas e conclua considerando-se o nível de
+significância 5%; (0, 5 × 2 pontos)
+
+```{r}
+#verificando se as variancias sao iguais
+var.test(A,B)
+var.test(B,C)
+var.test(A,C)
+
+#os tratamentos nao possuem variancias distintas
+
+#realizando o teste-t para os tres tratamentos
+
+t.test(A,B, var.equal = T)
+t.test(B,C, var.equal = T)
+t.test(A,C, var.equal = T)
+
+
+```
+O teste t entre os trës tratamentos nos revela que:
+* tratamento A e B: possuem médias distintas
+* Tratamento A e C: possuem médias distintas
+* tratamento B e C: não possuem diferenças em suas médias estaticamente significantes dados $\alpha = 5%$ 
+
+
+e) Se as pressuposições básicas forem atendidas, faça a análise de variância e conclua considerando-se o
+nível de significância 5%; (1, 0 ponto)
+
+```{r}
+aov_model <- aov(df01$altura ~ df01$trat)
+summary(aov_model)
+```
+Considerando um nivel de significancia de 5%, podemos concluir que existe diferenca entre as alturas das tres especies de plantas, pois o p-valor de 0.00031 e menor do que 5%
+
+f) Se a continuidade da análise for recomendada (Quadro ANOVA), aplique o teste de comparações
+múltiplas de Tukey, apresente gráficos, interprete. (1, 0 ponto)
+
+```{r}
+tukey <- TukeyHSD(aov_model, 'df01$trat', conf.level = 0.95)
+tukey
+```
+O teste Tukey, nos indica que existe diferenca significativa considerando um alpha de 5%, apenas entre as plantas A-B e C-B. 
+
+Isso pode ser melhor visualizado com o grafico family-wise comparison, a seguir.
+
+```{r}
+#tukey test representation
+plot(tukey, las = 1, col = 'brown')
+```
+Como o intervalo de confianca entre A-C, contem o 0 nao podemos aformar que existe diferenca entre as medias.
+
+#Questao 02
+
+a) Obtenha a soma de quadrados de tratamentos (Tabela da ANOVA) (0, 5 pontos)
+
+Conforme a tabela anova acima, temos que: $SS = 1433$
+
+b) O quadrado médio do resíduo (Tabela da ANOVA) (0, 5 pontos)
+
+$MQ_{res} = 76.9$
+
+c) O valor p do teste F (Tabela da ANOVA) (0, 5 pontos)
+
+$p-value = 0.000315$
+
+d) A diferença mínima significativa (DMS) do teste de Tukey (0, 5 pontos)
+
+
+
+#Questao 03
+
+```{r}
+
+I1 <- c(1,2,3,4, 
+5, 
+6 ,
+7 ,
+8 ,
+9 ,
+10,
+11,
+12)
+
+C1 <- c(0.265,
+0.265,
+0.266,
+0.267,
+0.267,
+0.265,
+0.267,
+0.267,
+0.265,
+0.268,
+0.268,
+0.265 )
+
+C2 <- c(0.264,
+0.265,
+0.264,
+0.266,
+0.267,
+0.268,
+0.264,
+0.265,
+0.265,
+0.267,
+0.268,
+0.269
+)
+#dataframe 03
+
+a <- c(replicate(12,"I1"))
+b <-c(replicate(12,"C1"))
+c <- c(replicate(12, "C2"))
+
+
+df03 <- data.frame("trat" = c(b,c),
+                   "measure" = c(C1,C2))
+```
+
+
+a) Existe uma diferença significativa entre as médias das medições dos calibradores? Use α = 0, 05.(1, 0
+ponto). Interprete o resultado.
+
+```{r}
+plotmeans(df03$measure ~ df03$trat, xlab = "Calibrador", ylab = "Medida", 
+          main = "Mean Plot\nwith 95% CI")
+```
+Teste anova para verificar a existencia na diferenca de medias 
+
+```{r}
+df03_aov <- aov(df03$measure ~ df03$trat)
+summary(df03_aov)
+```
+a) Não existe diferença na média dos calibradores
+
+b) O valor - p para o Teste F foi de $p-value = 0,68$ para $\alpha = 5{\%}$
+
+c) Construa um intervalo de confiança para as médias
+
+```{r}
+library(multcompView)
+model = lm(df03$measure ~ df03$trat)
+anova=aov(model)
+
+summary(anova)
+
+#tukey test 
+
+tukey <- TukeyHSD(anova, 'df03$trat', conf.level = 0.95)
+tukey
+
+#tukey test representation
+plot(tukey, las = 1, col = 'brown')
+```
+O intervalo de confiança acima nos indica que:
+  1. Temos 95% de confoança de que o real valor da diferença entre as médias do Calibrador C1 e do Calibrador C2, reside dentro do intervalo [-0.0015, 0.0010]. Como esse intervalo contem o zero, nao podemos rejeitar $H_0$: a diferenca entre as medias e 0.

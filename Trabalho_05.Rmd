@@ -1,0 +1,103 @@
+---
+title: "Trabalho_05"
+author: "Heitor Carvalho - 11833351"
+date: '2022-05-09'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercício 01
+
+Foi realizado um experimento inteiramente casualizado com quatro tratamentos e 4 repetições, para estudar
+os efeitos de *Bacitracina de zinco (BDZ)* e *Anti-stress* no índice de conversão alimentar de frangos de corte, no período de 4 a 35 dias de idade, alimentados com rações à base de sorgo. Foram utilizados 540 pintos da raça “Cobb-100” da Granja Avisco - Mococa, SP., e os tratamentos empregados estão descritos na Tabela 01:
+
+* Tratamentos:
+
+  *A: Concentrado Comercial + Milho
+  *B: Concentrado Comercial + Sorgo
+  *C: Concentrado Comercial + Sorgo + BDZ
+  *D: Concentrado Comercial + Sorgo + Anti-Stress
+
+```{r}
+#Tabela 01
+
+y <- c(2.10, 1.99, 2.02, 2.00, 2.35,2.26,2.18,2.17,2.02,2.04,2.03,2.05,2.19,2.11,2.29,2.30)
+
+trat <- c(rep("A",4), rep("B",4), rep("C",4), rep("D",4))
+
+trat <- as.factor(trat)
+
+#creating a dataframe
+
+df02 <- data.frame(trat,y)
+
+#length of each treatment
+n <- tapply(df02$y, df02$trat, length)
+
+#mean of each treatment
+means <- tapply(df02$y, df02$trat, mean)
+
+#variances
+sds <- tapply(df02$y, df02$trat, sd)
+
+#summary dataframe
+
+df02_ <- data.frame(n,means, round(sds,2))
+
+```
+
+Considere um nível de significância de 5%.
+
+No estudo, em questão podemos considerar que os grupos (A,B) representam dois grupos controle distintos e (C,D) representariam o nosso grupo experimental.
+
+a) Qual a variável resposta e sua unidade?
+
+A unidade resposta é a *conversão alimentar* uma medida da produtividade de rebanhos e criações. É definida como o consumo total de ração por um animal dividido pelo peso ganho pelo animal.
+
+$FCR = \frac{Consumo total de alimento}{Ganho de massa corporal}$
+ 
+O Índice de Conversão Alimentar (FCR) é adimensional, pois é razão das mesmas unidades de medida. (Em geral, kg)
+
+b) Qual a sua interpretação?
+
+Quanto menor o $Feed Conversion rate (FCR)$ maior a produtividade e eficiência do animal.
+
+c) O que é desejavel: Indices de conversão maiores ou menores?
+
+Índices menores, como dito acima.
+
+d) Qual a parcela utilizada?
+
+Não entendi a pergunta.
+
+e) Faça a análise de variância dos dados.
+
+  * e1) Verifique se as pressuposições básicas foram atendidas? Justifique suas respostas com gráficos e     testes.
+
+```{r}
+#Verificando as pressuposições do para a ANOVA
+
+# Analise Exploratoria rapida
+
+boxplot(split(df02$y, df02$trat))
+```
+A partir do boxplot, verifica-se que existe alguma diferença entre os tratamentos, Precisamos saber se as diferenças nas médias são significativas.
+
+Assumiremos uma $H_0$ de que não há diferença entre as médias dos tratamentos C e D.
+
+
+
+e2) Existe efeito de tratamento? Justique sua resposta.
+
+f) Faça o desdobramento dos graus de liberdade de tratamentos para um grupo de contrastes mutuamente
+ortogonais de interesse do pesquisador.
+
+f1) Quais os contrastes utilizados?
+
+f2) Quais são as conclusões?
+
+g) Verifique se, em média, o contraste formado pelos tratamentos (A, B) vs (C, D) é significativo.
+

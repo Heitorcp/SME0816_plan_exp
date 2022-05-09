@@ -1,0 +1,41 @@
+---
+title: "Teste 01"
+author: "Heitor"
+date: '2022-03-28'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Teste 01 - teste t (28/3/2022)
+
+exemplo de aula
+```{r}
+set.seed((13))
+x <- rnorm(10,3,2)
+
+ttest <- t.test(x, mu=3, paired=F)
+ttest
+
+#definindo alpha
+alpha <- 0.05
+alpha/2
+
+#quantis da distribuicao
+n <- length(x)
+c(qt(alpha/2, n-1))
+```
+```{r}
+n = 148
+mu= 125
+m_amostral = 137.3
+var_amostral = 37.14
+
+x <- rnorm(148,137.3, 37.14)
+ttest <- t.test(x, mu=137.3)
+ttest
+```
+
+
