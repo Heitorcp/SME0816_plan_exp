@@ -134,15 +134,7 @@ shapiro.test(fit$residuals)
 Utilizando o teste de Shapiro-Wilk para testar a normalidade dos resídos, obtivemos um p-valor de 0,9142, o que não rejeita a hipótese nula, de normalidade dos dados, a um nível de significância de 5%.
 
 
-
-```{r}
-shapiro.test(fit$residuals)
-```
-
-Utilizando o teste de Shapiro-Wilk para testar a normalidade dos resídos, obtivemos um p-valor de 0,9142, o que não rejeita a hipótese nula, de normalidade dos dados, a um nível de significância de 5%.
-
 ### Existe efeito de tratamento?
-
 
 
 ```{r}
