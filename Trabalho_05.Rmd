@@ -1,12 +1,27 @@
 ---
-title: "Trabalho_05"
-author: "Heitor Carvalho - 11833351"
-date: '2022-05-09'
+title: "SME0816 - Planejamento de Experimentos I"
+subtitle: "Trabalho 5 - Grupo 13"
+author:
+  - Beatriz Proença Carvalho
+  - Francisco Rosa Dias de Miranda 4402962
+  - Heitor Carvalho Pinheiro 11833351
+date: "Maio 2022"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+
+\centering
+\raggedright
+\newpage
+\tableofcontents
+\newpage
+
+
+```{r setup, include=FALSE, message=F}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(multcomp, quietly = T)
+library(gmodels)
 ```
 
 # Exercício 01
@@ -16,10 +31,10 @@ os efeitos de *Bacitracina de zinco (BDZ)* e *Anti-stress* no índice de convers
 
 * Tratamentos:
 
-  *A: Concentrado Comercial + Milho
-  *B: Concentrado Comercial + Sorgo
-  *C: Concentrado Comercial + Sorgo + BDZ
-  *D: Concentrado Comercial + Sorgo + Anti-Stress
+  - A: Concentrado Comercial + Milho
+  - B: Concentrado Comercial + Sorgo
+  - C: Concentrado Comercial + Sorgo + BDZ
+  - D: Concentrado Comercial + Sorgo + Anti-Stress
 
 ```{r}
 #Tabela 01
@@ -53,29 +68,33 @@ Considere um nível de significância de 5%.
 
 No estudo, em questão podemos considerar que os grupos (A,B) representam dois grupos controle distintos e (C,D) representariam o nosso grupo experimental.
 
-a) Qual a variável resposta e sua unidade?
+## Variável resposta e sua unidade
 
-A unidade resposta é a *conversão alimentar* uma medida da produtividade de rebanhos e criações. É definida como o consumo total de ração por um animal dividido pelo peso ganho pelo animal.
+A unidade resposta é a *conversão alimentar* uma medida da produtividade de rebanhos e criações. É definida como o consumo total de ração por um animal dividido pelo peso ganho pelo animal. Essa grandeza não possui unidade.
 
 $FCR = \frac{Consumo total de alimento}{Ganho de massa corporal}$
  
 O Índice de Conversão Alimentar (FCR) é adimensional, pois é razão das mesmas unidades de medida. (Em geral, kg)
 
-b) Qual a sua interpretação?
+## Interpretação
 
 Quanto menor o $Feed Conversion rate (FCR)$ maior a produtividade e eficiência do animal.
 
-c) O que é desejavel: Indices de conversão maiores ou menores?
+## Índices de conversão maiores ou menores?
 
-Índices menores, como dito acima.
+São desejáveis índices menores, que indicam uma maior conversão da respectiva dieta no peso das aves.
 
-d) Qual a parcela utilizada?
+## Parcela utilizada
 
-Não entendi a pergunta.
+```{r}
+length(trat)/16
+```
 
-e) Faça a análise de variância dos dados.
+A parcela utilizada possui tamanho 1.
 
-  * e1) Verifique se as pressuposições básicas foram atendidas? Justifique suas respostas com gráficos e     testes.
+## Análise de variância
+
+### Pressuposições básicas do modelo
 
 ```{r}
 #Verificando as pressuposições do para a ANOVA
@@ -89,15 +108,109 @@ A partir do boxplot, verifica-se que existe alguma diferença entre os tratament
 Assumiremos uma $H_0$ de que não há diferença entre as médias dos tratamentos C e D.
 
 
+Faremos o ajuste do modelo ANOVA para verificar seus respectivos resíduos
 
-e2) Existe efeito de tratamento? Justique sua resposta.
+```{r}
+fit <- df02 %>% aov(y ~ trat, data = .)
+```
 
-f) Faça o desdobramento dos graus de liberdade de tratamentos para um grupo de contrastes mutuamente
-ortogonais de interesse do pesquisador.
 
-f1) Quais os contrastes utilizados?
 
-f2) Quais são as conclusões?
+#### Normalidade dos resíduos
 
+```{r}
+ggplot() +
+  geom_point(aes(y = fit$residuals, x = fit$fitted.values)) +
+  labs( x= "Resíduos",
+        y = "Valores Ajustados",
+        title = "Resíduos versus valores ajustados")
+```
+
+
+```{r}
+shapiro.test(fit$residuals)
+```
+
+Utilizando o teste de Shapiro-Wilk para testar a normalidade dos resídos, obtivemos um p-valor de 0,9142, o que não rejeita a hipótese nula, de normalidade dos dados, a um nível de significância de 5%.
+
+
+
+```{r}
+shapiro.test(fit$residuals)
+```
+
+Utilizando o teste de Shapiro-Wilk para testar a normalidade dos resídos, obtivemos um p-valor de 0,9142, o que não rejeita a hipótese nula, de normalidade dos dados, a um nível de significância de 5%.
+
+### Existe efeito de tratamento?
+
+
+
+```{r}
+summary(fit)
+```
+
+Como o p-valor é menor que nosso nível de significância, podemos concluir que existem diferenças significativas entre os grupos, ou seja, um nível de confiança de 95% nos faz concluir de que pelo menos uma das médias dos grupos diferem.
+
+
+### Desdobramento dos graus de liberdade de tratamentos para um grupo de contrastes mutuamente ortogonais.
+
+
+```{r}
+
+trat <- gl(4,4)
+
+trat1 <- c(1,-1/3,-1/3,-1/3)
+trat2 <- c(0,1,-1/2,-1/2)
+trat3 <- c(0,0,1,-1)
+
+contrasts(trat)<- cbind(trat1,
+                        trat2,
+                        trat3)
+
+c1 <- rbind(trat1,
+            trat2,
+            trat3)
+
+rownames(c1) <- paste("contr", 1:3, sep = "")
+c1
+
+mod2 <- aov(y ~ trat, data = df02, contrast = list(trat = make.contrasts(c1)))
+summary(mod2, split = list(trat = 1:3))
+
+fit.contrast(mod2, "trat", c1)
+```
+
+### Contrastes utilizados
+
+```{r}
+c1
+
+```
+
+
+
+
+
+
+### Conclusões
+
+
+```{r}
+
+
+modelo <- lm(y~trat, data = df02)
+summary(glht(modelo,linfct=mcp(trat=trat1)))
+
+```
+
+```{r}
+summary(glht(modelo,linfct=mcp(trat=trat2)))
+```
+
+```{r}
+
+summary(glht(modelo,linfct=mcp(trat=trat3)))
+
+```
 g) Verifique se, em média, o contraste formado pelos tratamentos (A, B) vs (C, D) é significativo.
 
