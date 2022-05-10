@@ -168,9 +168,9 @@ Como o p-valor é menor que nosso nível de significância, podemos concluir que
 
 trat <- gl(4,4)
 
-trat1 <- c(1,-1/3,-1/3,-1/3)
-trat2 <- c(0,1,-1/2,-1/2)
-trat3 <- c(0,0,1,-1)
+trat1 <- c(1,-1/3,-1/3,-1/3) #contraste para comparacao dos 4 grupos
+trat2 <- c(0,1,-1/2,-1/2) #contraste para comparacao dos grupos B,C e D
+trat3 <- c(0,0,1,-1) #contraste para a comparacao dos grupos C e D
 
 contrasts(trat)<- cbind(trat1,
                         trat2,
@@ -224,5 +224,15 @@ summary(glht(modelo,linfct=mcp(trat=trat2)))
 summary(glht(modelo,linfct=mcp(trat=trat3)))
 
 ```
+
 g) Verifique se, em média, o contraste formado pelos tratamentos (A, B) vs (C, D) é significativo.
+
+Os valores do p-valor dos trës contrastes utilizados, nos indicam as seguintes conclusões:
+
+* Existe uma diferença significativa nos contrastes formados por todos os grupos.
+
+* O contraste formado pelos grupos (C,D) apresenta maior significância entre todos os outros.
+
+Podemos concluir que o tratamento com ***BDZ*** é mais eficaz na redução do *FCR* por animal quando comparado ao uso de ***Anti-stress***.
+
 
