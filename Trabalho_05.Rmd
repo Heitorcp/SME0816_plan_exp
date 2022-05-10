@@ -2,7 +2,7 @@
 title: "SME0816 - Planejamento de Experimentos I"
 subtitle: "Trabalho 5 - Grupo 13"
 author:
-  - Beatriz Proença Carvalho
+  - Beatriz Proença Carvalho 10408302
   - Francisco Rosa Dias de Miranda 4402962
   - Heitor Carvalho Pinheiro 11833351
 date: "Maio 2022"
@@ -22,6 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(multcomp, quietly = T)
 library(gmodels)
+library(ggpubr)
 ```
 
 # Exercício 01
@@ -64,9 +65,19 @@ df02_ <- data.frame(n,means, round(sds,2))
 
 ```
 
+
+```{r}
+df02 %>% group_by(trat) %>% summarise(n = n(),
+                                     media = mean(y),
+                                     variancia = var(y),
+                                     desvio_padr = sd(y))
+```
+
+
 Considere um nível de significância de 5%.
 
 No estudo, em questão podemos considerar que os grupos (A,B) representam dois grupos controle distintos e (C,D) representariam o nosso grupo experimental.
+
 
 ## Variável resposta e sua unidade
 
@@ -100,10 +111,20 @@ A parcela utilizada possui tamanho 1.
 #Verificando as pressuposições do para a ANOVA
 
 # Analise Exploratoria rapida
-
-boxplot(split(df02$y, df02$trat))
+ggboxplot(df02, x = "trat", y = "y", 
+          color = "trat",
+          ylab = "FCR", xlab = "Grupo")
 ```
 A partir do boxplot, verifica-se que existe alguma diferença entre os tratamentos, Precisamos saber se as diferenças nas médias são significativas.
+
+
+
+```{r}
+ggline(df02, x = "trat", y = "y", 
+       add = c("mean_se", "jitter"), 
+       ylab = "FCR", xlab = "Grupo")
+```
+
 
 Assumiremos uma $H_0$ de que não há diferença entre as médias dos tratamentos C e D.
 
@@ -190,6 +211,9 @@ modelo <- lm(y~trat, data = df02)
 summary(glht(modelo,linfct=mcp(trat=trat1)))
 
 ```
+
+
+
 
 ```{r}
 summary(glht(modelo,linfct=mcp(trat=trat2)))
